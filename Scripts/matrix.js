@@ -298,48 +298,72 @@
 			leftMax: $(this.SELECTORS.TABLE_INNER).scrollLeft() + this.CONTAINER_WIDTH
 		};
 
-		var topPositions = [],
-			overlappingRows = [],
-			outOfViewRows = [];
+
+		/*
+			Part 1 - Getting all top & left positions for stopped active view
+		*/
+		// Rows
+		var rowsBehindViewportEdge = (($wp.topMax / this.ROW_HEIGHT).toFixed(0) * this.ROW_HEIGHT) - this.ROW_HEIGHT,
+			currentTopPositionList = [];
+
+		for (var i = 0; i < this.VISIBLE_ROWS.length; i++) {
+			rowsBehindViewportEdge -= this.ROW_HEIGHT;
+			currentTopPositionList.push(rowsBehindViewportEdge);
+		}
+
+		// Columns
+		var columnsBehindViewportEdge = (($wp.leftMax / this.COLUMN_WIDTH).toFixed(0) * this.COLUMN_WIDTH) - this.COLUMN_WIDTH,
+			currentLeftPositionList = [];
+
+		for (var i = 0; i < this.VISIBLE_COLUMNS.length; i++) {
+			columnsBehindViewportEdge -= this.COLUMN_WIDTH;
+			currentLeftPositionList.push(columnsBehindViewportEdge);
+		}
+
+		/*
+			Part 2 - Check for overlapping / out of viewport elements and re-draw them
+		*/
+		// Rows
+		var badRows = [];
 		// Checking if all rows are in viewport
 		for (var i = 0; i < this.VISIBLE_ROWS.length; i++) {
 			var row = this.VISIBLE_ROWS[i];
-
-			if (topPositions.indexOf(row.top) < 0) {
-				topPositions.push(row.top);
+			var positionIndex = currentTopPositionList.indexOf(row.top);
+			if (positionIndex < 0) {
+				badRows.push(row);
 			}
 			else {
-				overlappingRows.push(row);
-			}
-
-			if (row.top < $wp.topMin && row.top > $wp.topMax) {
-				outOfViewRows.push(row);
+				currentTopPositionList.splice(positionIndex, 1);
 			}
 		}
+		for (var i = 0; i < badRows.length; i++) {
+			var row = badRows[i];
 
-		if (overlappingRows.length > 0 || outOfViewRows.length > 0) {
-			
+			row.top = currentTopPositionList[i];
+
+			updateRow(row);
 		}
 
-		console.log(topPositions, overlappingRows, outOfViewRows);
 
-		var leftPositions = [],
-			overlappingColumns = [],
-			outOfViewColumns = [];
-		// Checking if all columns are in viewport
+		// Columns
+		var badColumns = [];
+		// Checking if all rows are in viewport
 		for (var i = 0; i < this.VISIBLE_COLUMNS.length; i++) {
 			var column = this.VISIBLE_COLUMNS[i];
-
-			if (leftPositions.indexOf(column.left) < 0) {
-				leftPositions.push(column.left);
+			var positionIndex = currentLeftPositionList.indexOf(column.left);
+			if (positionIndex < 0) {
+				badColumns.push(column);
 			}
 			else {
-				overlappingColumns.push(column);
+				currentLeftPositionList.splice(positionIndex, 1);
 			}
+		}
+		for (var i = 0; i < badColumns.length; i++) {
+			var column = badColumns[i];
 
-			if (column.left < $wp.leftMin && column.left > $wp.leftMax) {
-				outOfViewColumns.push(column);
-			}
+			column.left = currentLeftPositionList[i];
+
+			updateColumns(column);
 		}
 	};
 
