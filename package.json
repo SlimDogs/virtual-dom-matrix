@@ -1,0 +1,22 @@
+{
+  "name": "virtual-rendering-matrix-project",
+  "version": "1.0.0",
+  "description": "Office Architect virtual DOM rendering project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "4.13.3",
+    "body-parser": "^1.x.x"
+  },
+  "keywords": [
+    "matrix",
+    "virtual",
+    "dom",
+    "office",
+    "architect"
+  ],
+  "author": "Tautvydas Derzinskas",
+  "license": "ISC"
+}
