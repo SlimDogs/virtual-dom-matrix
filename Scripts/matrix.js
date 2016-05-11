@@ -398,7 +398,7 @@
 			this.MATRIX_ID = id;
 
 /*
-
+			// $('style[timeline="timeline-styles-' + scope.$id + '"]').html(styles); - in body
 			$('body').append('<style class="matrix-id-' + this.MATRIX_ID + '">'+
 				this.SELECTORS.COLUMNS + ' { height: ' + this.ROW_HEIGHT + 'px; left: ' + this.COLUMN_WIDTH + 'px; };' +
 				this.SELECTORS.ROWS + ' { width: ' + this.COLUMN_WIDTH + 'px; top: ' + this.ROW_HEIGHT + 'px; };' +
