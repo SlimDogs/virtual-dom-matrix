@@ -28,10 +28,40 @@
 
 				overflow: auto;
 
-				.column {
-					position: absolute;
-					top: 0;
-					bottom: 0;	
+				* {
+				    box-sizing: border-box;
+				}
+
+				.row {
+ 					position: absolute;
+ 					left: 0;
+ 					right: 0;
+ 					border-bottom: 1px #eee solid;
+
+					overflow: hidden;
+
+					&.loading {
+						background: #f1f1f1;
+						opacity: 0.3;
+					}
+
+					.column {
+						position: absolute;
+						top: 0;
+						bottom: 0;
+						border-right: 1px #eee solid;
+
+						&:hover {
+							border: 1px blue solid;
+							z-index: 99999;
+						}
+
+						&.loading {
+							background: #f1f1f1;
+							opacity: 0.3;
+						}
+
+					}
 				}
 			}
 		}

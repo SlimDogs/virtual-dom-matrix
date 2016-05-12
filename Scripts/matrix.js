@@ -33,6 +33,7 @@
 	row.prototype.repaint = function() {
 		var rowElement = document.querySelectorAll('.matrix-id-' + this.MATRIX_ID + ' .row.id-' + this.ID);
 		rowElement[0].style.top = this.TOP + 'px';
+		if (rowElement[0].className.indexOf('loading') < 0) rowElement[0].className += ' loading';
 		this.UPDATING = false;
 	};
 
@@ -54,6 +55,7 @@
 		var columnElements = document.querySelectorAll('.matrix-id-' + this.MATRIX_ID + ' .column.id-' + this.ID);
 		for (var i = 0; i < columnElements.length; i++) {
 			columnElements[i].style.left = this.LEFT + 'px';
+			if (columnElements[i].className.indexOf('loading') < 0) columnElements[i].className += ' loading';
 		}
 		this.UPDATING = false;
 	};
@@ -104,8 +106,8 @@
 			this.HEIGHT = $table.height();
 			this.WIDTH = $table.width();
 
-			var visibleRowsCount = Math.ceil(this.HEIGHT / this.TOP),
-				visibleColumnsCount = Math.ceil(this.WIDTH / this.LEFT);
+			var visibleRowsCount = Math.ceil(this.HEIGHT / this.TOP) + 1,
+				visibleColumnsCount = Math.ceil(this.WIDTH / this.LEFT) + 1;
 
 			if (this.ROWS.length != visibleRowsCount || this.COLUMNS.length !== visibleColumnsCount) {
 				var initialTop = Math.floor($table.scrollTop() / this.TOP) * this.TOP,
@@ -139,10 +141,10 @@
 				// Updating DOM
 				var matrixTableHtml = '';
 				for (var a = 0; a < this.ROWS.length; a++) {
-					matrixTableHtml += '<div class="row id-' + a + '" style="top: ' + this.ROWS[a].TOP + 'px; height: ' + this.TOP + 'px; width: ' + (10000 * this.LEFT) + 'px; position: absolute; left: 0; right: 0; border-bottom: 1px #eee solid;">'
+					matrixTableHtml += '<div class="row id-' + a + '" style="top: ' + this.ROWS[a].TOP + 'px; height: ' + this.TOP + 'px; width: ' + (10000 * this.LEFT) + 'px;">'
 
 					for (var b = 0; b < this.COLUMNS.length; b++) {
-						matrixTableHtml += '<div class="column id-' + b + '" style="width: ' + this.LEFT + 'px; height: ' + this.TOP + 'px; border-right: 1px #eee solid; left: ' + this.COLUMNS[b].LEFT + 'px;"></div>'
+						matrixTableHtml += '<div class="column id-' + b + '" style="left: ' + this.COLUMNS[b].LEFT + 'px; height: ' + this.TOP + 'px; width: ' + this.LEFT + 'px;"></div>'
 					}
 
 					matrixTableHtml += '</div>';
@@ -288,17 +290,19 @@
 
 				// Part 1 - Getting all top & left positions for stopped active view				
 				// Rows
-				var rowsBehindViewportEdge = ($wp.topMax / _self.TOP).toFixed(0) * _self.TOP,
+				var rowsBehindViewportEdge = Math.ceil($wp.topMax / _self.TOP) * _self.TOP,
 					currentTopPositionList = [];
 				for (var i = 0; i < _self.ROWS.length; i++) {
 					rowsBehindViewportEdge -= _self.TOP;
+					if (rowsBehindViewportEdge < 0) rowsBehindViewportEdge = Math.ceil($wp.topMax / _self.TOP) * _self.TOP + _self.TOP;
 					currentTopPositionList.push(rowsBehindViewportEdge);
 				}
 				// Columns
-				var columnsBehindViewportEdge = ($wp.leftMax / _self.LEFT).toFixed(0) * _self.LEFT,
+				var columnsBehindViewportEdge = Math.ceil($wp.leftMax / _self.LEFT) * _self.LEFT,
 					currentLeftPositionList = [];
 				for (var i = 0; i < _self.COLUMNS.length; i++) {
 					columnsBehindViewportEdge -= _self.LEFT;
+					if (columnsBehindViewportEdge < 0) columnsBehindViewportEdge = Math.ceil($wp.leftMax / _self.LEFT) * _self.LEFT + _self.LEFT;
 					currentLeftPositionList.push(columnsBehindViewportEdge);
 				}
 
