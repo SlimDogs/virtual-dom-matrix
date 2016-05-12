@@ -1,441 +1,448 @@
-(function(window, $) {
-	console.log('Running matrix logic v2.0');
-
+(function($) {
 	var CONST = {};
 	CONST.ROW_HEIGHT = 30; // PX
-	CONST.COLUMN_WIDTH = 30; //
+	CONST.COLUMN_WIDTH = 30; // PX
 
-	function matrix(config) {
-		if (!config) config = {};
+	/*
+		Templates
+	*/
+	var TPL = {};
+	TPL.CANVAS = '<div>' +
+		'<div class="columns-axis"></div>' +
+		'<div class="rows-axis"></div>' +
+		'<div class="table">' +
+			'<div>' +
+			'</div>' +
+		'</div>'
+	'</div>';
 
-		this.SELECTORS = {
-			CONTAINER: null,
-			COLUMNS: null,
-			ROWS: null,
-			TABLE: null,
-			TABLE_INNER: null,
-			TABLE_CONTAINER: null
-		};
+
+	/*
+		Row items
+	*/
+	function row(rowCfg) {
+		// Esentials
+		this.MATRIX_ID = rowCfg.matrixId || 0;
+		this.TOP = rowCfg.top || 0;
+		this.DISTANCE = rowCfg.distance || 0;
+		this.ID = rowCfg.id || 0;
+
+		// Other
+		this.UPDATING = false;
+	};
+	row.prototype.repaint = function() {
+		var rowElement = document.querySelectorAll('.matrix-id-' + this.MATRIX_ID + ' .row.id-' + this.ID);
+		rowElement[0].style.top = this.TOP + 'px';
+		this.UPDATING = false;
+	};
+
+	/*
+		Column items
+	*/
+	function column(columnCfg) {
+		// Esentials
+		this.MATRIX_ID = columnCfg.matrixId || 0;
+		this.LEFT = columnCfg.left || 0;
+		this.DISTANCE = columnCfg.distance || 0;
+		this.ID = columnCfg.id || 0;
+
+		// Other
+		this.UPDATING = false;
+	};
+	column.prototype.repaint = function() {
+		// Repaints columns with same id in all rows
+		var columnElements = document.querySelectorAll('.matrix-id-' + this.MATRIX_ID + ' .column.id-' + this.ID);
+		for (var i = 0; i < columnElements.length; i++) {
+			columnElements[i].style.left = this.LEFT + 'px';
+		}
+		this.UPDATING = false;
+	};
+	/*
+		Matrix table
+	*/
+	function table() {
+		this.MATRIX_ID = null;
+
+		this.HEIGH = 0;
+		this.WIDTH = 0;
+
+		this.ROWS = [];
+		this.COLUMNS = [];
+
+		this.TOP_SCROLL = 0;
+		this.LEFT_SCROLL = 0;
+
 		this.INITIALIZED = false;
-
-		this.ROW_HEIGHT = config.ROW_HEIGHT || CONST.ROW_HEIGHT;
-		this.COLUMN_WIDTH = config.COLUMN_WIDTH || CONST.COLUMN_WIDTH;
-
-		this.templates = {};
-
-		// Canvas template
-		this.templates.canvas = '<div class="matrix">'+
-			'<div class="column-objects">column</div>'+
-			'<div class="row-objects">row</div>'+
-			'<div class="matrix-table"><div style="height: 100%; width: 100%; overflow: auto;" class="matrix"><div>table</div></div></div>'
-		'</div>';
-
-		this.templates.axisItem = '<div class="object"><i></i> <span>{$0}</span></div>';
-
-		this.rows = [];
-		this.columns = [];
-		this.loadedRelationships = [];
-
-		// Display configuration
-		this.VISIBLE_ROWS = [];
-		this.VISIBLE_COLUMNS = [];
-
-		this.CONTAINER_HEIGHT = 0;
-		this.CONTAINER_WIDTH = 0;
-
-		this.LAST_SCROLL_TOP = 0;
-		this.LAST_SCROLL_LEFT = 0;
 	};
+	table.prototype.bootstrap = function(config) {
+		this.MATRIX_ID = config.id;
 
-	matrix.prototype.calculateDefaults = function() {
-		var element = $(this.MATRIX_SELECTOR);
+		this.ROWS = [];
+		this.COLUMNS = [];
 
-		var visibleRowsCount = Math.ceil($(this.SELECTORS.TABLE).height() / this.ROW_HEIGHT),
-			visibleColumnsCount = Math.ceil($(this.SELECTORS.TABLE).width() / this.COLUMN_WIDTH);
+		this.TOP = config.rowHeight;
+		this.LEFT = config.columnWidth;
 
-		var initialTop = Math.floor($(this.SELECTORS.TABLE_INNER).scrollTop() / this.ROW_HEIGHT) * this.ROW_HEIGHT,
-			initialLeft = Math.floor($(this.SELECTORS.TABLE_INNER).scrollLeft() / this.COLUMN_WIDTH) * this.COLUMN_WIDTH;
-
-		// Creating virtual dom
-		for (var i = 0; i < visibleRowsCount; i++) {
-			this.VISIBLE_ROWS.push({
-				top: initialTop + i * this.ROW_HEIGHT,
-				distance: initialTop + (i * this.ROW_HEIGHT) + this.ROW_HEIGHT,
-				id: i
-			});
-		}
-
-		for (var a = 0; a < visibleColumnsCount; a++) {
-			this.VISIBLE_COLUMNS.push({
-				left: initialLeft + a * this.COLUMN_WIDTH,
-				distance: initialLeft + (a * this.COLUMN_WIDTH) + this.COLUMN_WIDTH,
-				id: a
-			})
-		}
-
-		this.CONTAINER_HEIGHT = $('#' + this.SELECTORS.CONTAINER).height();
-		this.CONTAINER_WIDTH = $('#' + this.SELECTORS.CONTAINER).width();
-
-		this.FIRST_ROW_ID = 0;
-		this.LAST_ROW_ID = visibleRowsCount - 1;
-
-		this.FIRST_COLUMN_ID = 0;
-		this.LAST_COLUMN_ID = visibleColumnsCount - 1;
-	};
-
-	matrix.prototype.resizeEvent = function() {
-		var self = this;
-		$(window).resize(function() {
-			self.VISIBLE_ROWS = [];
-			self.VISIBLE_COLUMNS = [];
-
-			self.CONTAINER_HEIGHT = $('#' + self.SELECTORS.CONTAINER).height();
-			self.CONTAINER_WIDTH = $('#' + self.SELECTORS.CONTAINER).width();
-
-			self.LAST_SCROLL_TOP = $(self.SELECTORS.TABLE_INNER).scrollTop();
-			self.LAST_SCROLL_LEFT = $(self.SELECTORS.TABLE_INNER).scrollLeft();
-
-
-			m.calculateDefaults();
-			m.draw(null, true);
+		// Positioning table
+		$(activeMatrixes[this.MATRIX_ID].selectors.table).css({
+			top: this.TOP + 'px',
+			left: this.LEFT + 'px'
 		});
+
+		// Setting dimensions of inner
+		var matrixObj = activeMatrixes[this.MATRIX_ID].matrix;
+		$(activeMatrixes[this.MATRIX_ID].selectors.tableInner).css({
+			height: (matrixObj.COLUMNS_AXIS.length * this.TOP) + 'px',
+			width: (matrixObj.ROWS_AXIS.length * this.LEFT) + 'px'
+		});
+
+		this.INITIALIZED = true;
 	};
+	table.prototype.repaint = function(config) {
+		if (this.INITIALIZED) {
+			var $table = $(activeMatrixes[this.MATRIX_ID].selectors.table);
+			this.HEIGHT = $table.height();
+			this.WIDTH = $table.width();
 
-	function updateRow(row) {
-		$('.row.id-' + row.id).css('top', row.top + 'px');
-		row.updating = false;
-	};
+			var visibleRowsCount = Math.ceil(this.HEIGHT / this.TOP),
+				visibleColumnsCount = Math.ceil(this.WIDTH / this.LEFT);
 
-	function updateColumns(column) {
-		console.log('Updating columns with id', column.id);
-		$('.row > .id-' + column.id).css('left', column.left + 'px');
-		column.updating = false;
-	};
+			if (this.ROWS.length != visibleRowsCount || this.COLUMNS.length !== visibleColumnsCount) {
+				var initialTop = Math.floor($table.scrollTop() / this.TOP) * this.TOP,
+					initialLeft = Math.floor($table.scrollLeft() / this.LEFT) * this.LEFT;
 
-	var virtualizeInProgress = false;
-	matrix.prototype.virtualize = function(direction, difference, topDistance, leftDistance, full) {
-		if (!virtualizeInProgress) {
-			virtualizeInProgress = true;
+				// Creating virtual dom
+				this.ROWS = [];
+				for (var i = 0; i < visibleRowsCount; i++) {
+					this.ROWS.push(new row({
+						top: initialTop + i * this.TOP,
+						distance: initialTop + (i * this.TOP) + this.TOP,
+						id: i,
+						matrixId: this.MATRIX_ID
+					}));
+				}
+				this.FIRST_ROW_ID = 0;
+				this.LAST_ROW_ID = this.ROWS.length - 1;
 
-			/*
-				Rendering logic
-				For vertical scrolling
-			*/
-			if (direction === 'up' || direction === 'down') {
+				this.COLUMNS = [];
+				for (var a = 0; a < visibleColumnsCount; a++) {
+					this.COLUMNS.push(new column({
+						left: initialLeft + a * this.LEFT,
+						distance: initialLeft + (a * this.LEFT) + this.LEFT,
+						id: a,
+						matrixId: this.MATRIX_ID
+					}));
+				}
+				this.FIRST_COLUMN_ID = 0;
+				this.LAST_COLUMN_ID = this.COLUMNS.length - 1;
 
+				// Updating DOM
+				var matrixTableHtml = '';
+				for (var a = 0; a < this.ROWS.length; a++) {
+					matrixTableHtml += '<div class="row id-' + a + '" style="top: ' + this.ROWS[a].TOP + 'px; height: ' + this.TOP + 'px; width: ' + (10000 * this.LEFT) + 'px; position: absolute; left: 0; right: 0; border-bottom: 1px #eee solid;">'
 
-				// Small distance scroll
-				if (difference < this.CONTAINER_HEIGHT && !full) {
-
-					// Rerendering rows
-					for (var i = 0; i < this.VISIBLE_ROWS.length; i++) {
-						var row = this.VISIBLE_ROWS[i];
-						//debugger;
-						if (direction === 'down') {
-							if (row.distance <= topDistance && !row.updating) {
-
-								row.top = this.VISIBLE_ROWS[this.LAST_ROW_ID].distance;
-								row.distance = row.top + this.ROW_HEIGHT;
-								this.LAST_ROW_ID = row.id;
-								this.FIRST_ROW_ID = row.id + 1 < this.VISIBLE_ROWS.length ? row.id + 1 : 0;
-								row.updating = true;
-
-								updateRow(row);
-							}
-						}
-						else {
-
-							if (row.top >= topDistance + this.CONTAINER_HEIGHT) {
-								row.top = this.VISIBLE_ROWS[this.FIRST_ROW_ID].top - this.ROW_HEIGHT;
-								row.distance = row.top + this.ROW_HEIGHT;
-								this.FIRST_ROW_ID = row.id;
-								this.LAST_ROW_ID = row.id - 1 >= 0 ? row.id - 1 : this.VISIBLE_ROWS.length - 1;
-								row.updating = true;
-
-								updateRow(row);
-							}
-						}
+					for (var b = 0; b < this.COLUMNS.length; b++) {
+						matrixTableHtml += '<div class="column id-' + b + '" style="width: ' + this.LEFT + 'px; height: ' + this.TOP + 'px; border-right: 1px #eee solid; left: ' + this.COLUMNS[b].LEFT + 'px;"></div>'
 					}
 
+					matrixTableHtml += '</div>';
+				}
+
+				$(activeMatrixes[this.MATRIX_ID].selectors.tableInner).html(matrixTableHtml);
+			}
+		}
+	};
+	var virtualizationInProgress = false;
+	table.prototype.virtualize = function(direction, difference, topDistance, leftDistance) {
+		if (!virtualizationInProgress) {
+			virtualizationInProgress = true;
+
+			//For vertical scrolling
+			if (direction === 'up' || direction === 'down') {
+				// Small distance scroll
+				if (difference < this.HEIGHT) {
+					// Rerendering rows
+					for (var i = 0; i < this.ROWS.length; i++) {
+						var row = this.ROWS[i];
+						if (direction === 'down' && this.ROWS[this.FIRST_ROW_ID].DISTANCE <= topDistance) {
+							if (row.DISTANCE <= topDistance && !row.UPDATING) {
+								row.TOP = this.ROWS[this.LAST_ROW_ID].DISTANCE;
+								row.DISTANCE = row.TOP + this.TOP;
+								this.LAST_ROW_ID = row.ID;
+								this.FIRST_ROW_ID = row.ID + 1 < this.ROWS.length ? row.ID + 1 : 0;
+								row.UPDATING = true;
+								row.repaint();
+							}
+						}
+						else if (this.ROWS[this.LAST_ROW_ID].TOP >= topDistance + this.HEIGHT) {
+							if (row.TOP >= topDistance + this.HEIGHT) {
+								row.TOP = this.ROWS[this.FIRST_ROW_ID].TOP - this.TOP;
+								row.DISTANCE = row.TOP + this.TOP;
+								this.FIRST_ROW_ID = row.ID;
+								this.LAST_ROW_ID = row.ID - 1 >= 0 ? row.ID - 1 : this.ROWS.length - 1;
+								row.UPDATING = true;
+								row.repaint();
+							}
+						}
+						else break;
+					}
 				}
 				else {
-
 					// Full rerender
-					var firstTopValue = Math.floor(topDistance / this.ROW_HEIGHT) * this.ROW_HEIGHT;
-					for (var i = 0; i < this.VISIBLE_ROWS.length; i++) {
-						var row = this.VISIBLE_ROWS[i];
+					var firstTopValue = Math.floor(topDistance / this.TOP) * this.TOP;
+					for (var i = 0; i < this.ROWS.length; i++) {
+						var row = this.ROWS[i];
 
-						row.top = firstTopValue + i * this.ROW_HEIGHT;
-						row.distance = row.top + this.ROW_HEIGHT;
-
-						updateRow(row);
+						row.TOP = firstTopValue + i * this.TOP;
+						row.DISTANCE = row.TOP + this.TOP;
+						row.repaint();
 					}
 
 					this.FIRST_ROW_ID = 0;
-					this.LAST_ROW_ID = this.VISIBLE_ROWS.length - 1;
-
+					this.LAST_ROW_ID = this.ROWS.length - 1;
 				}
-
-				virtualizeInProgress = false;
 			}
-
-			/*
-				Rendering logic
-				For horizontal scrolling
-			*/
+			//For horizontal scrolling
 			else {
 				// Small distance scroll
-				if (difference < this.CONTAINER_WIDTH && !full) {
-					//debugger;
+				if (difference < this.WIDTH) {
 					// Rerendering rows
-					for (var i = 0; i < this.VISIBLE_COLUMNS.length; i++) {
-						var column = this.VISIBLE_COLUMNS[i];
-						//debugger;
-						if (direction === 'right') {
-							if (column.distance <= leftDistance && !column.updating) {
-
-								column.left = this.VISIBLE_COLUMNS[this.LAST_COLUMN_ID].distance;
-								column.distance = column.left + this.COLUMN_WIDTH;
-								this.LAST_COLUMN_ID = column.id;
-								this.FIRST_COLUMN_ID = column.id + 1 < this.VISIBLE_COLUMNS.length ? column.id + 1 : 0;
-								column.updating = true;
-
-								updateColumns(column);
+					for (var i = 0; i < this.COLUMNS.length; i++) {
+						var column = this.COLUMNS[i];
+						if (direction === 'right' && this.COLUMNS[this.FIRST_COLUMN_ID].DISTANCE <= leftDistance) {
+							if (column.DISTANCE <= leftDistance && !column.UPDATING) {
+								column.LEFT = this.COLUMNS[this.LAST_COLUMN_ID].DISTANCE;
+								column.DISTANCE = column.LEFT + this.LEFT;
+								this.LAST_COLUMN_ID = column.ID;
+								this.FIRST_COLUMN_ID = column.ID + 1 < this.COLUMNS.length ? column.ID + 1 : 0;
+								column.UPDATING = true;
+								column.repaint();
 							}
 						}
-						else {
-
-							if (column.left > leftDistance + this.CONTAINER_WIDTH) {
-
-								column.left = this.VISIBLE_COLUMNS[this.FIRST_COLUMN_ID].left - this.COLUMN_WIDTH;
-								column.distance = column.left + this.COLUMN_WIDTH;
-								this.FIRST_COLUMN_ID = column.id;
-								this.LAST_COLUMN_ID = column.id - 1 >= 0 ? column.id - 1 : this.VISIBLE_COLUMNS.length - 1;
-								column.updating = true;
-
-								updateColumns(column);
+						else if (this.COLUMNS[this.LAST_COLUMN_ID].LEFT >= leftDistance + this.WIDTH) {
+							if (column.LEFT > leftDistance + this.WIDTH) {
+								column.LEFT = this.COLUMNS[this.FIRST_COLUMN_ID].LEFT - this.LEFT;
+								column.DISTANCE = column.LEFT + this.LEFT;
+								this.FIRST_COLUMN_ID = column.ID;
+								this.LAST_COLUMN_ID = column.ID - 1 >= 0 ? column.ID - 1 : this.COLUMNS.length - 1;
+								column.UPDATING = true;
+								column.repaint();
 							}
 						}
+						else break;
 					}
-
 				}
 				else {
-					var firstLeftValue = Math.floor(leftDistance / this.COLUMN_WIDTH) * this.COLUMN_WIDTH;
-					for (var i = 0; i < this.VISIBLE_COLUMNS.length; i++) {
-						var column = this.VISIBLE_COLUMNS[i];
+					var firstLeftValue = Math.floor(leftDistance / this.LEFT) * this.LEFT;
+					for (var i = 0; i < this.COLUMNS.length; i++) {
+						var column = this.COLUMNS[i];
 
-						column.left = firstLeftValue + i * this.COLUMN_WIDTH;
-						column.distance = column.left + this.COLUMN_WIDTH;
-
-						updateColumns(column);
+						column.LEFT = firstLeftValue + i * this.LEFT;
+						column.DISTANCE = column.LEFT + this.LEFT;
+						column.repaint();
 					}
 
 					this.FIRST_COLUMN_ID = 0;
-					this.LAST_COLUMN_ID = this.VISIBLE_COLUMNS.length - 1;
+					this.LAST_COLUMN_ID = this.COLUMNS.length - 1;
 				}
-
-				virtualizeInProgress = false;
-
 			}
+
+			virtualizationInProgress = false;
 		}
 	};
+	table.prototype.scroll = function(event) {
+		var $matrixTableElement = $(activeMatrixes[this.MATRIX_ID].selectors.table);
 
-	// Redrawimg matrix
-	matrix.prototype.draw = function(event, forced) {
-		if (this.INITIALIZED && !forced) {
-			var $matrixTableElement = $(this.SELECTORS.TABLE_INNER);
+		var scrollTop = $matrixTableElement.scrollTop();
+		if (scrollTop !== this.TOP_SCROLL) {
+			var goingDown = scrollTop > this.TOP_SCROLL;
+			this.virtualize(goingDown ? 'down' : 'up', goingDown ? (scrollTop - this.TOP_SCROLL) : ( this.TOP_SCROLL - scrollTop), scrollTop);
+			this.TOP_SCROLL = scrollTop;
+		}
+		
+		var scrollLeft = $matrixTableElement.scrollLeft();
+		if (scrollLeft !== this.LEFT_SCROLL) {
+			var goingRight = scrollLeft > this.LEFT_SCROLL;
+			this.virtualize(goingRight ? 'right' : 'left', goingRight ? (scrollLeft - this.LEFT_SCROLL) : ( this.LEFT_SCROLL - scrollLeft), null, scrollLeft);
+			this.LEFT_SCROLL = scrollLeft;
+		}
+	};
+	table.prototype.enableScrolling = function() {
+		// Create scroll event
+		var scrollCallbackTimer,
+			_self = this;
+		$(activeMatrixes[this.MATRIX_ID].selectors.table).scroll(function(e) {
+			clearTimeout(scrollCallbackTimer);
+			_self.scroll(e);
 
-			var scrollTop = $matrixTableElement.scrollTop();
-			if (scrollTop !== this.LAST_SCROLL_TOP) {
+			scrollCallbackTimer = setTimeout(function() {
+				/*
+					Making sure
+				*/
+				var $wp = { // ViewPort
+					topMin: $(activeMatrixes[_self.MATRIX_ID].selectors.table).scrollTop(),
+					topMax: $(activeMatrixes[_self.MATRIX_ID].selectors.table).scrollTop() + _self.HEIGHT,
+					leftMin: $(activeMatrixes[_self.MATRIX_ID].selectors.table).scrollLeft(),
+					leftMax: $(activeMatrixes[_self.MATRIX_ID].selectors.table).scrollLeft() + _self.WIDTH
+				};
 
-				var goingDown = scrollTop > this.LAST_SCROLL_TOP;
-				m.virtualize(goingDown ? 'down' : 'up', goingDown ? (scrollTop - this.LAST_SCROLL_TOP) : ( this.LAST_SCROLL_TOP - scrollTop), scrollTop);
+				// Part 1 - Getting all top & left positions for stopped active view				
+				// Rows
+				var rowsBehindViewportEdge = ($wp.topMax / _self.TOP).toFixed(0) * _self.TOP,
+					currentTopPositionList = [];
+				for (var i = 0; i < _self.ROWS.length; i++) {
+					rowsBehindViewportEdge -= _self.TOP;
+					currentTopPositionList.push(rowsBehindViewportEdge);
+				}
+				// Columns
+				var columnsBehindViewportEdge = ($wp.leftMax / _self.LEFT).toFixed(0) * _self.LEFT,
+					currentLeftPositionList = [];
+				for (var i = 0; i < _self.COLUMNS.length; i++) {
+					columnsBehindViewportEdge -= _self.LEFT;
+					currentLeftPositionList.push(columnsBehindViewportEdge);
+				}
 
-				this.LAST_SCROLL_TOP = scrollTop;
-			}
-			
-			var scrollLeft = $matrixTableElement.scrollLeft();
-			if (scrollLeft !== this.LAST_SCROLL_LEFT) {
+				// Part 2 - Check for overlapping / out of viewport elements and re-draw them
+				// Rows
+				var badRows = [];
+				// Checking if all rows are in viewport
+				for (var i = 0; i < _self.ROWS.length; i++) {
+					var positionIndex = currentTopPositionList.indexOf(_self.ROWS[i].TOP);
+					if (positionIndex < 0) {
+						badRows.push(_self.ROWS[i]);
+					}
+					else {
+						currentTopPositionList.splice(positionIndex, 1);
+					}
+				}
+				for (var i = 0; i < badRows.length; i++) {
+					badRows[i].TOP = currentTopPositionList[i];
+					badRows[i].repaint();
+				}
 
-				var goingRight = scrollLeft > this.LAST_SCROLL_LEFT;
-				m.virtualize(goingRight ? 'right' : 'left', goingRight ? (scrollLeft - this.LAST_SCROLL_LEFT) : ( this.LAST_SCROLL_LEFT - scrollLeft), null, scrollLeft);
+				// Columns
+				var badColumns = [];
+				// Checking if all rows are in viewport
+				for (var i = 0; i < _self.COLUMNS.length; i++) {
+					var positionIndex = currentLeftPositionList.indexOf(_self.COLUMNS[i].LEFT);
+					if (positionIndex < 0) {
+						badColumns.push(_self.COLUMNS[i]);
+					}
+					else {
+						currentLeftPositionList.splice(positionIndex, 1);
+					}
+				}
+				for (var i = 0; i < badColumns.length; i++) {
+					badColumns[i].LEFT = currentLeftPositionList[i];
+					badColumns[i].repaint();
+				}
 
-				this.LAST_SCROLL_LEFT = scrollLeft;
-			}
+			}, 550);
+		});
+	};
+
+	/*
+		Matrix canvas
+	*/
+	var currentMatrixId = 0,
+		activeMatrixes = [];
+
+	function matrix (element, config) {
+		this.MATRIX_ID = currentMatrixId;
+		currentMatrixId++;
+
+		element.addClass('vd-matrix matrix-id-' + this.MATRIX_ID);
+
+		// Making sure we have all params (default param extend)
+		var defaults = {
+			rowHeight: 30,
+			columnWidth: 30,
+			id: this.MATRIX_ID
+		};
+		if (!config) {
+			config = defaults;
 		}
 		else {
-			var initialTop = 0,
-				initialLeft = 0;
-			if (forced) {
-				$(this.SELECTORS.TABLE_CONTAINER).html('');
+			for (prop in defaults) {
+				if (!config[prop]) config[prop] = defaults[prop];
 			}
-
-			var matrixTableHtml = '';
-			for (var a = 0; a < this.VISIBLE_ROWS.length; a++) {
-				matrixTableHtml += '<div class="row id-' + a + '" style="top: ' + this.VISIBLE_ROWS[a].top + 'px; height: ' + this.ROW_HEIGHT + 'px; width: ' + (this.columns.length * this.COLUMN_WIDTH) + 'px; position: absolute; left: 0; right: 0; border-bottom: 1px #eee solid;">'
-
-				for (var b = 0; b < this.VISIBLE_COLUMNS.length; b++) {
-					matrixTableHtml += '<div class="column-cell id-' + b + '" style="width: ' + this.COLUMN_WIDTH + 'px; height: ' + this.ROW_HEIGHT + 'px; border-right: 1px #eee solid; left: ' + this.VISIBLE_COLUMNS[b].left + 'px;"></div>'
-				}
-
-				matrixTableHtml += '</div>';
-			}
-
-			$(this.SELECTORS.TABLE_CONTAINER).html(matrixTableHtml);
-
-			this.INITIALIZED = true;
 		}
+		// Appending canvas template
 
-		return null;
-	};
-
-	matrix.prototype.reCheck = function() {
-		console.log('Rechecking', this);
-		var $wp = { // ViewPort
-			topMin: $(this.SELECTORS.TABLE_INNER).scrollTop(),
-			topMax: $(this.SELECTORS.TABLE_INNER).scrollTop() + this.CONTAINER_HEIGHT,
-			leftMin: $(this.SELECTORS.TABLE_INNER).scrollLeft(),
-			leftMax: $(this.SELECTORS.TABLE_INNER).scrollLeft() + this.CONTAINER_WIDTH
+		// Pushing this to matrixes array
+		activeMatrixes[this.MATRIX_ID] = {
+			matrix: this,
+			selectors: {
+				canvas: '.matrix-id-' + this.MATRIX_ID,
+				table: '.matrix-id-' + this.MATRIX_ID + ' > div > .table',
+				tableInner: '.matrix-id-' + this.MATRIX_ID + ' > div > .table > div'
+			}
 		};
+		element.html(TPL.CANVAS);
 
-
-		/*
-			Part 1 - Getting all top & left positions for stopped active view
-		*/
-		// Rows
-		var rowsBehindViewportEdge = (($wp.topMax / this.ROW_HEIGHT).toFixed(0) * this.ROW_HEIGHT) - this.ROW_HEIGHT,
-			currentTopPositionList = [];
-
-		for (var i = 0; i < this.VISIBLE_ROWS.length; i++) {
-			rowsBehindViewportEdge -= this.ROW_HEIGHT;
-			currentTopPositionList.push(rowsBehindViewportEdge);
-		}
-
-		// Columns
-		var columnsBehindViewportEdge = (($wp.leftMax / this.COLUMN_WIDTH).toFixed(0) * this.COLUMN_WIDTH) - this.COLUMN_WIDTH,
-			currentLeftPositionList = [];
-
-		for (var i = 0; i < this.VISIBLE_COLUMNS.length; i++) {
-			columnsBehindViewportEdge -= this.COLUMN_WIDTH;
-			currentLeftPositionList.push(columnsBehindViewportEdge);
-		}
-
-		/*
-			Part 2 - Check for overlapping / out of viewport elements and re-draw them
-		*/
-		// Rows
-		var badRows = [];
-		// Checking if all rows are in viewport
-		for (var i = 0; i < this.VISIBLE_ROWS.length; i++) {
-			var row = this.VISIBLE_ROWS[i];
-			var positionIndex = currentTopPositionList.indexOf(row.top);
-			if (positionIndex < 0) {
-				badRows.push(row);
-			}
-			else {
-				currentTopPositionList.splice(positionIndex, 1);
-			}
-		}
-		for (var i = 0; i < badRows.length; i++) {
-			var row = badRows[i];
-
-			row.top = currentTopPositionList[i];
-
-			updateRow(row);
-		}
-
-
-		// Columns
-		var badColumns = [];
-		// Checking if all rows are in viewport
-		for (var i = 0; i < this.VISIBLE_COLUMNS.length; i++) {
-			var column = this.VISIBLE_COLUMNS[i];
-			var positionIndex = currentLeftPositionList.indexOf(column.left);
-			if (positionIndex < 0) {
-				badColumns.push(column);
-			}
-			else {
-				currentLeftPositionList.splice(positionIndex, 1);
-			}
-		}
-		for (var i = 0; i < badColumns.length; i++) {
-			var column = badColumns[i];
-
-			column.left = currentLeftPositionList[i];
-
-			updateColumns(column);
-		}
-	};
-
-	// Generating matrix
-	matrix.prototype.generate = function (selector, id) {
+		// Getting AXIS
 		var self = this;
-		if (selector) {
-			$('#' + selector).html(this.templates.canvas);
-			this.SELECTORS.CONTAINER = selector;
-			this.SELECTORS.COLUMNS = '#' + selector + ' > .matrix > .column-objects';
-			this.SELECTORS.ROWS = '#' + selector + ' > .matrix > .row-objects';
-			this.SELECTORS.TABLE = '#' + selector + ' > .matrix > .matrix-table';
-			this.SELECTORS.TABLE_INNER = '#' + selector + ' > .matrix > .matrix-table > .matrix';
-			this.SELECTORS.TABLE_CONTAINER = '#' + selector + ' > .matrix > .matrix-table > .matrix > div';
+		$.get('http://localhost:3000/axis', function(resp) {
+			self.ROWS_AXIS = resp.Rows;
+			self.COLUMNS_AXIS = resp.Columns;
 
-			// Create scroll event
-			//var now = new Date().getTime();
-			var scrollCallbackTimer;
-			$(this.SELECTORS.TABLE_INNER).scroll(function(e) {
-				//if (new Date().getTime() - now > 500) {
-					//now = new Date().getTime();
-					clearTimeout(scrollCallbackTimer);
-					m.draw(e);
+			// Setting up matrix table
+			self.TABLE = new table();
+			self.TABLE.bootstrap(config);
+			self.TABLE.repaint();
+			self.TABLE.enableScrolling();
 
-					scrollCallbackTimer = setTimeout(function() {
-						m.reCheck();
-					}, 550);
-				//}
+			// Setting up resizing of multiple matrixes
+			$(window).resize(function() {
+				for (var i = 0; i < activeMatrixes.length; i++) {
+					activeMatrixes[i].matrix.resize();
+				}
 			});
 
-			if (!id) id = 0;
-			this.MATRIX_ID = id;
+			// Getting relationships
+			/*
+			$.get('http://localhost:3000/relationships/50/50', function(resp) {
+				self.loadedRelationships = resp.Relationships;
+				m.resizeEvent();
 
-/*
-			// $('style[timeline="timeline-styles-' + scope.$id + '"]').html(styles); - in body
-			$('body').append('<style class="matrix-id-' + this.MATRIX_ID + '">'+
-				this.SELECTORS.COLUMNS + ' { height: ' + this.ROW_HEIGHT + 'px; left: ' + this.COLUMN_WIDTH + 'px; };' +
-				this.SELECTORS.ROWS + ' { width: ' + this.COLUMN_WIDTH + 'px; top: ' + this.ROW_HEIGHT + 'px; };' +
-				this.SELECTORS.TABLE + ' { left: ' + this.COLUMN_WIDTH + 'px; top: ' + this.ROW_HEIGHT + 'px; };' +
-			'</style>');
-*/
-
-			// Setting sizes
-			$(this.SELECTORS.COLUMNS).css('height', self.ROW_HEIGHT + 'px');
-			$(this.SELECTORS.COLUMNS).css('left', self.COLUMN_WIDTH + 'px');
-			$(this.SELECTORS.ROWS).css('width', self.COLUMN_WIDTH + 'px');
-			$(this.SELECTORS.ROWS).css('top', self.ROW_HEIGHT + 'px');
-			$(this.SELECTORS.TABLE).css('left', self.COLUMN_WIDTH + 'px');
-			$(this.SELECTORS.TABLE).css('top', self.ROW_HEIGHT + 'px');
-
-			// Getting matrix data
-			$.get('http://localhost:3000/axis', function(resp) {
-				self.rows = resp.Rows;
-				self.columns = resp.Columns;
-
-				$(self.SELECTORS.TABLE_CONTAINER).css('height', (self.rows.length * self.ROW_HEIGHT).toString() + 'px');
-				$(self.SELECTORS.TABLE_CONTAINER).css('width', (self.columns.length * self.COLUMN_WIDTH).toString() + 'px');
-
-				// Getting relationships
-				$.get('http://localhost:3000/relationships/50/50', function(resp) {
-					self.loadedRelationships = resp.Relationships;
-
-					m.resizeEvent();
-
-					m.calculateDefaults();
-					m.draw();
-				});
+				m.calculateDefaults();
+				m.draw();
 			});
-		}
+			*/
+		});
+	};
+	matrix.prototype.resize = function() {
+		this.ROWS = [];
+		this.COLUMNS = [];
+
+		this.HEIGHT = $(activeMatrixes[this.MATRIX_ID].selectors.table).height();
+		this.WIDTH = $(activeMatrixes[this.MATRIX_ID].selectors.table).width();
+
+		this.TOP_SCROLL = $(activeMatrixes[this.MATRIX_ID].selectors.table).scrollTop();
+		this.LEFT_SCROLL = $(activeMatrixes[this.MATRIX_ID].selectors.table).scrollLeft();
+		this.TABLE.repaint();
+	};
+	matrix.prototype.destroy = function() {
+		this.TABLE = null;
 	};
 
-	var m = new matrix();
-	m.generate('matrix-container');
+	/*
+		jQuery extend
+	*/
+	$.fn.matrix = function(config) {
+		var m = new matrix(this, config);
 
-})(this, jQuery);
+        return this;
+    };
+
+})(jQuery);
+
+$('#matrix-container').matrix({
+	rowHeight: 30,
+	columnWidth: 30
+});
+
+$('#test').matrix({
+	rowHeight: 150,
+	columnWidth: 30
+});

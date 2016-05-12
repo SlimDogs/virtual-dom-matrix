@@ -8,7 +8,11 @@
   },
   "dependencies": {
     "express": "4.13.3",
-    "body-parser": "^1.x.x"
+    "body-parser": "^1.x.x",
+    "grunt": "*",
+    "grunt-contrib-watch": "*",
+    "grunt-notify": "*",
+    "grunt-sass": "*"
   },
   "keywords": [
     "matrix",

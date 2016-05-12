@@ -5,12 +5,10 @@
   <meta charset="utf-8">
 
   <title>Virtual DOM Matrix</title>
-  <meta name="description" content="The HTML5 Herald">
-  <meta name="author" content="SitePoint">
-
+  <meta name="description" content="Virtual DOM Matrix">
+  <meta name="author" content="Tautvydas Derzinskas">
 	<!-- <link rel="stylesheet" href="css/styles.css?v=1.0">   -->
 	<script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
-
 	<style>
 	html {
 	    overflow-y: scroll;
@@ -25,53 +23,18 @@
 		width: 80%;
 		height: 45%;
 		margin: 25px;
-		border: 1px solid #000;
+
 		margin: 0 auto;
 	}
-
-	#matrix-container > div > * {
-		position: absolute;
-	}
-
-	#matrix-container .matrix {
-		position: relative;
-		height: 100%;
-		width: 100%;
-	}
-
-	#matrix-container .column-objects {
-		top: 0;
-		left: 0;
-		right: 0;
-	}
-
-	#matrix-container .row-objects {
-		top: 0;
-		left: 0;
-		bottom: 0;
-	}
-
-	#matrix-container .matrix-table {
-		top: 0;
-		right: 0;
-		bottom: 0;
-
-		overflow: auto;
-	}
-
-	#matrix-container .column-cell {
-		position: absolute;
-		top: 0;
-		bottom: 0;
-	}
 	</style>
-
-
+	<link rel="stylesheet" href="Styles/matrix.css" />
 </head>
 
 <body>
 
   <div id="matrix-container"></div>
+
+  <div id="test" style="width: 100%; height: 500px;"></div>
 
 
   <script src="Scripts/matrix.js"></script>
