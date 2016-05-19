@@ -1,4 +1,41 @@
-﻿.vd-matrix {
+﻿matrix {
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+.vd-matrix {
+    // Local VD Matrix variables
+    $vd-default-cell-height: 30px;
+    $vd-border-color: #ececec;
+
+    $vd-loader-size: 50px;
+
+    .vd-columns-axis-description {
+        position: absolute;
+        top: 0;
+        left: $vd-default-cell-height;
+        right: 0;
+        height: $vd-default-cell-height;
+
+        border-bottom: 1px $vd-border-color solid;
+    }
+
+    .vd-rows-axis-description {
+        position: absolute;
+        top: $vd-default-cell-height;
+        left: 0;
+        bottom: 0;
+        width: $vd-default-cell-height;
+
+        border-right: 1px $vd-border-color solid;
+    }
+
+    i {
+        font-size: 16px;
+        line-height: 30px;
+    }
+
 	> div {
 		position: relative;
 		height: 100%;
@@ -7,63 +44,155 @@
 		> div {
 			position: absolute;
 
-			&.columns-axis {
-				top: 0;
-				left: 0;
+            &.vd-switcher {
+                border: 1px $vd-border-color solid;
+                text-align: center;
+                height: $vd-default-cell-height;
+                width: $vd-default-cell-height;
+                
+                cursor: pointer;
+
+                background-color: $vd-border-color;
+                color: darken($vd-border-color, 50%);
+
+                &:hover {
+                    background-color: darken($vd-border-color, 50%);
+                    color: $oaWebWhite;
+                }
+
+            }
+
+			&.vd-columns-axis {
+                position: absolute;
+				top: $vd-default-cell-height;
+				left: 205px;
 				right: 0;
+
+                height: 175px;
+
+                border-left: 1px $vd-border-color solid;
+
+                overflow: hidden;
+
+                > div {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    height: 100%;
+                    overflow: hidden;
+
+                    > div {
+                        position: absolute;
+                    }
+                }
 			}
 
-			&.rows-axis {
-				top: 0;
-				left: 0;
+			&.vd-rows-axis {
+                position: absolute;
+				top: 205px;
+				left: $vd-default-cell-height;
 				bottom: 0;
+
+                width: 175px;
+
+                border-top: 1px $vd-border-color solid;
+
+                overflow: hidden;
+
+                > div {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+
+                    overflow: hidden;
+
+                    > div {
+                        position: absolute;
+                    }
+                }
 			}
 
-			&.table {
+			&.vd-table {
 				top: 0;
 				right: 0;
 				bottom: 0;
 
-				border: 1px #eee solid;
+				border: 1px $vd-border-color solid;
 
 				overflow: auto;
+                
+                > div {
+                    overflow: hidden;
+                }
 
 				* {
 				    box-sizing: border-box;
 				}
 
-				.row {
+				.vd-row {
  					position: absolute;
  					left: 0;
  					right: 0;
- 					border-bottom: 1px #eee solid;
+ 					border-bottom: 1px $vd-border-color solid;
 
-					overflow: hidden;
+					//overflow: hidden;
 
-					&.loading {
-						background: #f1f1f1;
-						opacity: 0.3;
+					&.vd-loading {
 					}
 
-					.column {
+					.vd-column {
 						position: absolute;
 						top: 0;
 						bottom: 0;
-						border-right: 1px #eee solid;
+						border-right: 1px $vd-border-color solid;
 
 						&:hover {
-							border: 1px blue solid;
+							border: 1px darken($vd-border-color, 25%) solid;
 							z-index: 99999;
 						}
 
-						&.loading {
-							background: #f1f1f1;
-							opacity: 0.3;
+						&.vd-loading {
+
 						}
 
 					}
 				}
 			}
+
+            &.vd-progress-loader {
+                position: absolute;
+                right: $vd-loader-size/2;
+                bottom: $vd-loader-size/2;
+
+
+                height: $vd-loader-size;
+                width: $vd-loader-size;
+                line-height: $vd-loader-size;
+
+                background-color: $vd-border-color;
+                color: darken($vd-border-color, 50%);
+
+                text-align: center;
+
+                    &:hover {
+                        background-color: darken($vd-border-color, 50%);
+                        color: $oaWebWhite;
+                    }
+
+                > i {
+                    display: inline-block;
+                    height: $vd-loader-size;
+                    width: $vd-loader-size;
+
+                    font-size: 30px;
+                    line-height: $vd-loader-size;
+
+                    @include vendorize(animation,  loaderAnimation 1.2s infinite linear);
+
+                    cursor: progress;
+                }
+            }
 		}
 	}
 }
