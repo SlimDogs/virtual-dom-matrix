@@ -171,9 +171,9 @@
 		});
 
 	    // Setting row axis height
-		$(activeMatrixes[this.MATRIX_ID].selectors.rowsAxis).css('height', (matrixObj.Y_AXIS.DATA.length * this.TOP) + 'px');
+		$(activeMatrixes[this.MATRIX_ID].selectors.rowsAxis).css('height', ((matrixObj.Y_AXIS.DATA.length + 1) * this.TOP) + 'px');
 	    // Settomg column axis width
-		$(activeMatrixes[this.MATRIX_ID].selectors.columnsAxis).css('width', (matrixObj.X_AXIS.DATA.length * this.LEFT) + 'px');
+		$(activeMatrixes[this.MATRIX_ID].selectors.columnsAxis).css('width', ((matrixObj.X_AXIS.DATA.length + 1) * this.LEFT) + 'px');
 
 		this.INITIALIZED = true;
 	};
@@ -581,8 +581,8 @@
 	        width: (this.X_AXIS.DATA.length * this.TABLE.LEFT) + 'px'
 	    });
 
-	    $(activeMatrixes[this.MATRIX_ID].selectors.rowsAxis).css('height', (this.Y_AXIS.DATA.length * this.TABLE.TOP) + 'px');
-	    $(activeMatrixes[this.MATRIX_ID].selectors.columnsAxis).css('width', (this.X_AXIS.DATA.length * this.TABLE.LEFT) + 'px');
+	    $(activeMatrixes[this.MATRIX_ID].selectors.rowsAxis).css('height', ((this.Y_AXIS.DATA.length + 1)  * this.TABLE.TOP) + 'px');
+	    $(activeMatrixes[this.MATRIX_ID].selectors.columnsAxis).css('width', ((this.X_AXIS.DATA.length + 1) * this.TABLE.LEFT) + 'px');
 
 	    this.resize();
 	};
