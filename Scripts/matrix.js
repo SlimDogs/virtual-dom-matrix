@@ -46,19 +46,33 @@
 		this.DISTANCE = rowCfg.distance || 0;
 		this.ID = rowCfg.id || 0;
 
+		this.OBJECT_ID = rowCfg.objectId;
+		this.OBJECT_TYPE_ID = rowCfg.objectTypeId;
+
 		// Other
 		this.UPDATING = false;
 	};
 	row.prototype.repaint = function () {
-        // Updating table row
-		var rowElement = document.querySelectorAll('.vd-matrix-id-' + this.MATRIX_ID + ' .vd-row.id-' + this.ID);
-		rowElement[0].style.top = this.TOP + 'px';
+	    var matrixObj = activeMatrixes[this.MATRIX_ID].matrix,
+            rowItem = matrixObj.Y_AXIS.DATA[(this.TOP / matrixObj.TABLE.TOP)];
 
-	    // Updating row axis row
-		var rowAxisElement = document.querySelectorAll('.vd-matrix-id-' + this.MATRIX_ID + ' .row-axis-item.id-' + this.ID);
-		rowAxisElement[0].style.top = this.TOP + 'px';
+	    if (rowItem) {
+	        // Updating table row
+	        var rowElement = document.querySelectorAll('.vd-matrix-id-' + this.MATRIX_ID + ' .vd-row.id-' + this.ID);
+	        rowElement[0].style.top = this.TOP + 'px';
 
-		if (rowElement[0].className.indexOf('vd-loading') < 0) rowElement[0].className += ' vd-loading';
+	        // Updating row axis row
+	        // Position
+	        var rowAxisElement = document.querySelectorAll('.vd-matrix-id-' + this.MATRIX_ID + ' .row-axis-item.id-' + this.ID);
+	        rowAxisElement[0].style.top = this.TOP + 'px';
+	        // Inner text
+	        //console.log(this.TOP / matrixObj.TABLE.TOP, 'from', matrixObj.Y_AXIS.DATA.length, 'First object is:', matrixObj.Y_AXIS.DATA[0].display, 'last object is:', matrixObj.Y_AXIS.DATA[(matrixObj.Y_AXIS.DATA.length-1)].display);
+	        rowAxisElement[0].innerHTML = rowItem.display;
+	        this.OBJECT_ID = rowItem.objectId;
+	        this.OBJECT_TYPE_ID = rowItem.objectTypeId;
+
+	        if (rowElement[0].className.indexOf('vd-loading') < 0) rowElement[0].className += ' vd-loading';
+	    }
 		this.UPDATING = false;
 	};
 
@@ -71,23 +85,35 @@
 		this.LEFT = columnCfg.left || 0;
 		this.DISTANCE = columnCfg.distance || 0;
 		this.ID = columnCfg.id || 0;
+		this.OBJECT_ID = columnCfg.objectId;
+		this.OBJECT_TYPE_ID = columnCfg.objectTypeId;
 
 		// Other
 		this.UPDATING = false;
 	};
 	column.prototype.repaint = function () {
-	    // Repaints columns with same id in all rows
+	    var matrixObj = activeMatrixes[this.MATRIX_ID].matrix,
+            columnItem = matrixObj.X_AXIS.DATA[(this.LEFT / matrixObj.TABLE.LEFT)];
 
-        // Updating table
-		var columnElements = document.querySelectorAll('.vd-matrix-id-' + this.MATRIX_ID + ' .vd-column.id-' + this.ID);
-		for (var i = 0; i < columnElements.length; i++) {
-			columnElements[i].style.left = this.LEFT + 'px';
-			if (columnElements[i].className.indexOf('vd-loading') < 0) columnElements[i].className += ' vd-loading';
-		}
+	    if (columnItem) {
+	        // Repaints columns with same id in all rows
+	        // Updating table
+	        var columnElements = document.querySelectorAll('.vd-matrix-id-' + this.MATRIX_ID + ' .vd-column.id-' + this.ID);
+	        for (var i = 0; i < columnElements.length; i++) {
+	            columnElements[i].style.left = this.LEFT + 'px';
+	            if (columnElements[i].className.indexOf('vd-loading') < 0) columnElements[i].className += ' vd-loading';
+	        }
 
-	    // Updating column axis
-		var columnAxisElement = document.querySelectorAll('.vd-matrix-id-' + this.MATRIX_ID + ' .column-axis-item.id-' + this.ID);
-		columnAxisElement[0].style.left = this.LEFT + 'px';
+	        // Updating column axis
+	        // Position
+	        var columnAxisElement = document.querySelectorAll('.vd-matrix-id-' + this.MATRIX_ID + ' .column-axis-item.id-' + this.ID);
+	        columnAxisElement[0].style.left = this.LEFT + 'px';
+
+	        // Inner text
+	        columnAxisElement[0].innerHTML = columnItem.display;
+	        this.OBJECT_ID = columnItem.objectId;
+	        this.OBJECT_TYPE_ID = columnItem.objectTypeId;
+	    }
 
 		this.UPDATING = false;
 	};
@@ -206,7 +232,9 @@
 						top: initialTop + i * this.TOP,
 						distance: initialTop + (i * this.TOP) + this.TOP,
 						id: i,
-						matrixId: this.MATRIX_ID
+						matrixId: this.MATRIX_ID,
+						objectId: $matrix.Y_AXIS.DATA[i].objectId,
+						objectTypeId: $matrix.Y_AXIS.DATA[i].objectTypeId
 					}));
 				}
 				this.FIRST_ROW_ID = 0;
@@ -218,7 +246,9 @@
 						left: initialLeft + a * this.LEFT,
 						distance: initialLeft + (a * this.LEFT) + this.LEFT,
 						id: a,
-						matrixId: this.MATRIX_ID
+						matrixId: this.MATRIX_ID,
+						objectId: $matrix.X_AXIS.DATA[a].objectId,
+						objectTypeId: $matrix.X_AXIS.DATA[a].objectTypeId
 					}));
 				}
 				this.FIRST_COLUMN_ID = 0;
@@ -230,13 +260,13 @@
 				    matrixTableHtml = '';
                 for (var a = 0; a < this.ROWS.length; a++) {
                     // Rows axis
-                    rowAxisHtml += '<div class="row-axis-item id-' + a + '" style="top: ' + this.ROWS[a].TOP + 'px; left: 0; right: 0; height: ' + this.LEFT + 'px; border-bottom: 1px #ececec solid;">#' + a + '</div>';
+                    rowAxisHtml += '<div class="row-axis-item id-' + a + '" style="top: ' + this.ROWS[a].TOP + 'px; left: 0; right: 0; height: ' + this.LEFT + 'px; border-bottom: 1px #ececec solid;">' + $matrix.Y_AXIS.DATA[a].display + '</div>';
 
                     // Table
                     matrixTableHtml += '<div class="vd-row id-' + a + '" style="top: ' + this.ROWS[a].TOP + 'px; height: ' + this.TOP + 'px; width: ' + ($matrix.X_AXIS.DATA.length * this.LEFT) + 'px;">';
 				    for (var b = 0; b < this.COLUMNS.length; b++) {
 				        // Columns axis
-				        if (a === 0) columnsAxisHtml += '<div class="column-axis-item id-' + b + '" style="left: ' + this.COLUMNS[b].LEFT + 'px; top: 0; bottom: 0; width: ' + this.LEFT + 'px; border-right: 1px #ececec solid;">#' + b + '</div>';
+				        if (a === 0) columnsAxisHtml += '<div class="column-axis-item id-' + b + '" style="left: ' + this.COLUMNS[b].LEFT + 'px; top: 0; bottom: 0; width: ' + this.LEFT + 'px; border-right: 1px #ececec solid;">' + $matrix.X_AXIS.DATA[b].display + '</div>';
 
 				        // Table
 				        matrixTableHtml += '<div class="vd-column id-' + b + '" style="left: ' + this.COLUMNS[b].LEFT + 'px; height: ' + this.TOP + 'px; width: ' + this.LEFT + 'px;"></div>';
@@ -374,6 +404,12 @@
 			_self = this;
 		$(activeMatrixes[this.MATRIX_ID].selectors.table).scroll(function(e) {
 		    clearTimeout(scrollCallbackTimer);
+
+		    if (!_self.LOADING) {
+		        _self.LOADING = true;
+		        $('.vd-matrix-id-' + _self.MATRIX_ID + ' .vd-progress-loader').show();
+		    }
+
 		    _self.scroll();
 
 
@@ -445,8 +481,8 @@
 				            if (_self.ROWS[i].TOP > LAST_ROW.TOP) LAST_COLUMN = _self.ROWS[i];
 				        }
 
-				        this.FIRST_COLUMN_ID = FIRST_COLUMN.ID;
-				        this.LAST_COLUMN_ID = LAST_COLUMN.ID;
+				        _self.FIRST_COLUMN_ID = FIRST_COLUMN.ID;
+				        _self.LAST_COLUMN_ID = LAST_COLUMN.ID;
 				    }
 				}
 
@@ -476,13 +512,63 @@
 				            if (_self.COLUMNS[i].LEFT > LAST_COLUMN.LEFT) LAST_COLUMN = _self.COLUMNS[i];
 				        }
 
-				        this.FIRST_COLUMN_ID = FIRST_COLUMN.ID;
-				        this.LAST_COLUMN_ID = LAST_COLUMN.ID;
+				        _self.FIRST_COLUMN_ID = FIRST_COLUMN.ID;
+				        _self.LAST_COLUMN_ID = LAST_COLUMN.ID;
 				    }
 				}
 
+		        // Initializing relationship receiving
+
+		        // Initializing selections
+				_self.performSelection();
+
+				_self.LOADING = false;
+				$('.vd-matrix-id-' + _self.MATRIX_ID + ' .vd-progress-loader').hide();
+
 			}, 550);
 		});
+	};
+
+	table.prototype.performSelection = function () {
+	    var matrixObj = activeMatrixes[this.MATRIX_ID].matrix;
+
+	    // Running trough all items anc checking if they are selected
+	    var loadingRows = $('.vd-row.vd-loading');
+
+	    for (var i = 0, b = loadingRows.length; i < b; i++) {
+	        var $row = $(loadingRows[i]),
+                rowId = getId($row);
+
+
+	        // Running trough all column items
+	        for (var cellId = 0, c = this.COLUMNS.length; cellId < c; cellId++) {
+
+	            var $column = $row.children('.id-' + cellId),
+                    selectionString = matrixObj.TABLE.ROWS[rowId].OBJECT_ID + '_' + matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID,
+	                selectionStringReverse = matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID + '_' + matrixObj.TABLE.ROWS[rowId].OBJECT_ID;
+
+	            var method = (matrixObj.SELECTED_ITEMS.indexOf(selectionString) < 0 && matrixObj.SELECTED_ITEMS.indexOf(selectionStringReverse) < 0 ? 'remove' : 'add') + 'Class';
+
+	            $column[method]('vd-selected').removeClass('vd-loading');
+	        }
+
+	        $row.removeClass('vd-loading');
+	    }
+
+	    // Additional check for selected columns if there are any missed
+	    var loadingColumns = $('.vd-column.vd-loading');
+	    for (var a = 0, b = loadingColumns.length; a < b; a++) {
+	        var $column = $(loadingColumns[a]),
+                cellId = getId($column),
+                rowId = getId($column.parent()),
+	            selectionString = matrixObj.TABLE.ROWS[rowId].OBJECT_ID + '_' + matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID,
+                selectionStringReverse = matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID + '_' + matrixObj.TABLE.ROWS[rowId].OBJECT_ID;
+
+	        var method = (matrixObj.SELECTED_ITEMS.indexOf(selectionString) < 0 && matrixObj.SELECTED_ITEMS.indexOf(selectionStringReverse) < 0 ? 'remove' : 'add') + 'Class';
+
+	        $column[method]('vd-selected').removeClass('vd-loading');
+	    }
+
 	};
 
 	/*
@@ -550,6 +636,9 @@
 		this.TABLE.repaint();
 		this.TABLE.enableScrolling();
 
+	    // Selected items
+		this.SELECTED_ITEMS = '';
+
 	    // Setting up resizing of multiple matrixes
 		if (activeMatrixes.length === 1) {
 		    $(window).on('resize.vdMatrix', function () {
@@ -558,6 +647,8 @@
 		        }
 		    });
 		}
+
+		this.LOADING = false;
 	};
 	matrix.prototype.resize = function() {
 		this.TABLE.ROWS = [];
@@ -599,6 +690,13 @@
 	    $(activeMatrixes[this.MATRIX_ID].selectors.table).unbind('scroll');
 	};
 
+
+    function getId(element) {
+	    var classes = element.attr('class');
+
+	    return classes.split('id-')[1].split(' ')[0];
+	};
+
 	/*
 		jQuery extend
 	*/
@@ -610,6 +708,27 @@
 	        $('.vd-matrix-id-' + m.MATRIX_ID + ' .vd-switcher').click(function () {
 	            m.switch();
 	        });
+
+	        // Enabling cell Selection
+	        if (config.options.options.cellSelection) {
+	            $('.vd-matrix-id-' + m.MATRIX_ID + ' .vd-column').click(function () {
+	                var rowId = getId($(this).parent()),
+                        cellId = getId($(this));
+
+	                var matrixObj = activeMatrixes[m.MATRIX_ID].matrix,
+                        selectionString = matrixObj.TABLE.ROWS[rowId].OBJECT_ID + '_' + matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID;
+
+	                if (matrixObj.SELECTED_ITEMS.indexOf(selectionString) < 0) {
+	                    matrixObj.SELECTED_ITEMS += ' ' + selectionString;
+	                    $(this).addClass('vd-selected');
+	                }
+	                else {
+	                    matrixObj.SELECTED_ITEMS = matrixObj.SELECTED_ITEMS.replace(selectionString, '');
+	                    $(this).removeClass('vd-selected');
+	                }
+
+	            });
+	        }
 
 	    }
 	    else {

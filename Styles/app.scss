@@ -136,10 +136,12 @@
  					right: 0;
  					border-bottom: 1px $vd-border-color solid;
 
-					//overflow: hidden;
-
-					&.vd-loading {
-					}
+                     &:not(.vd-loading) {
+                       .vd-selected:not(.vd-loading) {
+                            border: 1px darken($vd-border-color, 25%) solid;
+                            background-color: $primary-color;
+                        }
+                    }
 
 					.vd-column {
 						position: absolute;
@@ -151,11 +153,6 @@
 							border: 1px darken($vd-border-color, 25%) solid;
 							z-index: 99999;
 						}
-
-						&.vd-loading {
-
-						}
-
 					}
 				}
 			}
@@ -164,6 +161,7 @@
                 position: absolute;
                 right: $vd-loader-size/2;
                 bottom: $vd-loader-size/2;
+                display: none;
 
 
                 height: $vd-loader-size;
