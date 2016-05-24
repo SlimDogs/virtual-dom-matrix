@@ -119,7 +119,7 @@
 	};
 
     /*
-        X Axis
+        Axis
     */
 	function axis(type, items) {
 	    this.MATRIX_ID = null;
@@ -140,18 +140,6 @@
 	    this.WIDTH = this.HORIZONTAL ? config[this.TYPE].options.width : config[this.TYPE].options.height;
 
 	    this.INNER_WIDTH = this.DATA.length * this.WIDTH;
-
-        //
-
-
-	};
-	axis.prototype.repaint = function () {
-        /*
-	    $(this.SELECTOR).css({
-	        height: this.HEIGHT + 'px',
-            width: this.WIDTH + 'px'
-	    });
-        */
 	};
 
 	/*
@@ -426,8 +414,6 @@
 
 
 		        // Checking if we really need to do "FIXIN"
-                var overlapping
-
 				var isRowsVirtualized = _self.ROWS.length * _self.TOP > _self.HEIGHT,
                     isColumnsVirtualized = _self.COLUMNS.length * _self.LEFT > _self.WIDTH;
 
@@ -468,7 +454,7 @@
 				        }
 				    }
 
-				    if (badRows.lenght > 0) {
+				    if (badRows.length > 0) {
 				        for (var i = 0; i < badRows.length; i++) {
 				            badRows[i].TOP = currentTopPositionList[i];
 				            badRows[i].repaint();
@@ -478,11 +464,11 @@
                             LAST_ROW = _self.ROWS[_self.LAST_ROW_ID];
 				        for (var i = 0; i < _self.ROWS.length; i++) {
 				            if (_self.ROWS[i].TOP < FIRST_ROW.TOP) FIRST_ROW = _self.ROWS[i];
-				            if (_self.ROWS[i].TOP > LAST_ROW.TOP) LAST_COLUMN = _self.ROWS[i];
+				            if (_self.ROWS[i].TOP > LAST_ROW.TOP) LAST_ROW = _self.ROWS[i];
 				        }
 
-				        _self.FIRST_COLUMN_ID = FIRST_COLUMN.ID;
-				        _self.LAST_COLUMN_ID = LAST_COLUMN.ID;
+				        _self.FIRST_ROW_ID = FIRST_ROW.ID;
+				        _self.LAST_ROW_ID = LAST_ROW.ID;
 				    }
 				}
 
@@ -518,12 +504,13 @@
 				}
 
 		        // Initializing relationship receiving
+				_self.loadRelationships(function (_self) {
+				    // Initializing selections
+				    _self.performSelection();
 
-		        // Initializing selections
-				_self.performSelection();
-
-				_self.LOADING = false;
-				$('.vd-matrix-id-' + _self.MATRIX_ID + ' .vd-progress-loader').hide();
+				    _self.LOADING = false;
+				    $('.vd-matrix-id-' + _self.MATRIX_ID + ' .vd-progress-loader').hide();
+				});
 
 			}, 550);
 		});
@@ -569,6 +556,88 @@
 	        $column[method]('vd-selected').removeClass('vd-loading');
 	    }
 
+	};
+
+	var activeAjaxCall = null;
+	table.prototype.loadRelationships = function (callback) {
+	    // Cancelling previous calls
+	    if (activeAjaxCall != null) {
+	        activeAjaxCall.abort();
+	        activeAjaxCall = null;
+	    }
+
+        
+	    var matrixObj = activeMatrixes[this.MATRIX_ID].matrix,
+	        rowIds = [],
+            columnIds = [];
+
+	    var loadingRows = $('.vd-row.vd-loading');
+	    if (loadingRows.length > 0) {
+	        for (var i = 0, b = loadingRows.length; i < b; i++) {
+	            var rowId = getId($(loadingRows[i]));
+
+	            rowIds.push(matrixObj.TABLE.ROWS[rowId].OBJECT_ID);
+	            if (i === 0) {
+	                for (var cellId = 0, c = this.COLUMNS.length; cellId < c; cellId++) {
+	                    columnIds.push(matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID);
+	                }
+	            }
+	        }
+	    }
+	    else {
+	        // Additional check for selected columns if there are any missed
+	        var loadingColumns = $('.vd-column.vd-loading');
+	        for (var a = 0, b = loadingColumns.length; a < b; a++) {
+	            var cellId = getId($(loadingColumns[a])),
+                    rowId = getId($(loadingColumns[a]).parent());
+
+	            if (rowIds.indexOf(matrixObj.TABLE.ROWS[rowId].OBJECT_ID) < 0) rowIds.push(matrixObj.TABLE.ROWS[rowId].OBJECT_ID);
+	            columnIds.push(matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID);
+	        }
+	    }
+
+	    var _self = this;
+	    matrixObj.API.getRelationships(rowIds, columnIds, function (resp) {
+
+	        // Clearing load relationships
+	        $('.vd-row.vd-loading .vd-column.vd-relationship').removeClass('vd-relationship vd-single').html('');
+	        $('.vd-column.vd-loading.vd-relationship').removeClass('vd-relationship vd-single').html('');
+
+	        if (resp.data.item.intersectionItems) {
+
+	            for (var i = 0, b = resp.data.item.intersectionItems.length; i < b; i++) {
+	                var $relationship = resp.data.item.intersectionItems[i];
+
+	                // Finding row id
+	                var rowId = $.grep(matrixObj.TABLE.ROWS, function (e) {
+	                    return e.OBJECT_ID === $relationship.rowObjectId;
+	                })[0].ID;
+
+	                // Finding cell id
+	                var columnId = $.grep(matrixObj.TABLE.COLUMNS, function (e) {
+	                    return e.OBJECT_ID === $relationship.columnObjectId;
+	                })[0].ID;
+
+	                $('.vd-matrix-id-' + _self.MATRIX_ID + ' .vd-row.id-' + rowId + ' .vd-column.id-' + columnId).addClass('vd-relationship vd-single').html('<span></span>');
+
+	            }
+	        }
+
+
+
+	        // Render relationships if we have any!
+            /*
+	        if (resp.data.item.relationshipMatrix) {
+	            for (var i = 0, b = rowIds.length; i < b; i++) {
+	                for (var a = 0, c = columnIds.length; a < c; a++) {
+	                    console.log('Relationship status is:', resp.data.item.relationshipMatrix[i][a]);
+	                }
+	            }
+	        }
+            */
+
+	        if (callback != null) callback(_self);
+	    });
 	};
 
 	/*
@@ -625,16 +694,18 @@
 	    // Creating axis
 		this.X_AXIS = new axis('columns', config.columns.items);
 		this.X_AXIS.bootstrap(config);
-		this.X_AXIS.repaint();
 		this.Y_AXIS = new axis('rows', config.rows.items);
 		this.Y_AXIS.bootstrap(config);
-		this.Y_AXIS.repaint();
 
 	    // Setting up matrix table
 		this.TABLE = new table();
 		this.TABLE.bootstrap(config);
 		this.TABLE.repaint();
 		this.TABLE.enableScrolling();
+
+		this.VIEW_ID = config.viewId;
+
+		this.API = config.options.api;
 
 	    // Selected items
 		this.SELECTED_ITEMS = '';
@@ -711,20 +782,38 @@
 
 	        // Enabling cell Selection
 	        if (config.options.options.cellSelection) {
-	            $('.vd-matrix-id-' + m.MATRIX_ID + ' .vd-column').click(function () {
+	            $('.vd-matrix-id-' + m.MATRIX_ID).on('click', '.vd-column', function () {
 	                var rowId = getId($(this).parent()),
                         cellId = getId($(this));
 
 	                var matrixObj = activeMatrixes[m.MATRIX_ID].matrix,
                         selectionString = matrixObj.TABLE.ROWS[rowId].OBJECT_ID + '_' + matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID;
 
+	                // Checking for clone element
+	                var cloneElement;
+	                var cloneRowId = $.grep(matrixObj.TABLE.ROWS, function (e) {
+	                    return e.OBJECT_ID === matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID;
+	                });
+
+	                if (cloneRowId.length > 0) {
+	                    var cloneColumnId = $.grep(matrixObj.TABLE.COLUMNS, function (e) {
+	                        return e.OBJECT_ID === matrixObj.TABLE.ROWS[rowId].OBJECT_ID;
+	                    });
+
+	                    if (cloneColumnId.length > 0) {
+	                        cloneElement = $('.vd-matrix-id-' + m.MATRIX_ID + ' .vd-row.id-' + matrixObj.TABLE.ROWS.indexOf(cloneRowId[0]) + ' .vd-column.id-' + matrixObj.TABLE.COLUMNS.indexOf(cloneColumnId[0]));
+	                    }
+	                }
+
 	                if (matrixObj.SELECTED_ITEMS.indexOf(selectionString) < 0) {
 	                    matrixObj.SELECTED_ITEMS += ' ' + selectionString;
 	                    $(this).addClass('vd-selected');
+	                    if (cloneElement) cloneElement.addClass('vd-selected');
 	                }
 	                else {
 	                    matrixObj.SELECTED_ITEMS = matrixObj.SELECTED_ITEMS.replace(selectionString, '');
 	                    $(this).removeClass('vd-selected');
+	                    if (cloneElement) cloneElement.removeClass('vd-selected');
 	                }
 
 	            });
@@ -732,10 +821,11 @@
 
 	    }
 	    else {
-	        var MATRIX_ID = this.attr('data-vd-matrix');
+	        var MATRIX_ID = getId($(this)),
+                matrixObj = activeMatrixes[MATRIX_ID].matrix;
 
 	        if (config.action === 'destroy') {
-	            activeMatrixes[MATRIX_ID].matrix.destroy();
+	            matrixObj.destroy();
 	            activeMatrixes.splice(MATRIX_ID, 1);
 
 	            if (activeMatrixes.length === 0) {
@@ -743,6 +833,12 @@
 	            }
 
 	            console.log('%c -- Matrix Destroyed', 'background: purple; color: yellow;');
+	        }
+	        else if (config.action === 'clearSelection') {
+	            matrixObj.SELECTED_ITEMS = '';
+	            $('.vd-matrix-id-' + m.MATRIX_ID + ' .vd-column.vd-selected').removeClass('vd-selected');
+
+	            console.log('Matrix selection cleared');
 	        }
         }
 

@@ -11,6 +11,9 @@
 
     $vd-loader-size: 50px;
 
+    $vd-cell-hover-bg: #d7eaf8;
+    $vd-selected-cell-bg: #afd5f0;
+
     .vd-columns-axis-description {
         position: absolute;
         top: 0;
@@ -138,9 +141,72 @@
 
                      &:not(.vd-loading) {
                        .vd-selected:not(.vd-loading) {
-                            border: 1px darken($vd-border-color, 25%) solid;
-                            background-color: $primary-color;
+							background-color: $vd-selected-cell-bg !important;
+							&:before {
+								content: "";
+								position: absolute;
+								top: 0;
+								left: 0;
+								width: 100%;
+								height: 100%;
+								display: block;
+								border: 1px solid transparent;
+								border-color: $primary-color;
+							}
+								
+							&:hover-disable {
+								background-color: rgba($highlight-color, .6);
+							}
+
+							// Mixed selected cells
+							&.vd-relationship {
+								> span {
+									color: $primary-color;
+								}
+							}
                         }
+
+						.vd-relationship:not(.vd-loading) {
+							position: relative;
+
+							&.vd-single {
+								background-color: $primary-color;
+
+								> span {
+									@include icon-font();
+									@extend .ic-check;
+								}
+							}
+
+							> span {
+								display: block;
+								position: absolute;
+								top: 50%;
+								left: 0;
+								width: 100%;
+								max-width: $element-height;
+								margin-top: (-$base-icon-size/2);
+								z-index: 2;
+								font-weight: 100;
+
+								text-align: center;
+								color: $oaWebWhite;
+								font-size: $base-icon-size;
+								line-height: 1;
+							}
+
+
+							@for $i from 2 through 15 {
+								&.vd-multiple-#{$i} {
+									background-color: darken($primary-color, $i*3);
+								}
+							}
+
+							&.vd-lots {
+								background: darken($primary-color, (16*5));
+							}
+						}
+
                     }
 
 					.vd-column {
@@ -149,7 +215,11 @@
 						bottom: 0;
 						border-right: 1px $vd-border-color solid;
 
+                        cursor: pointer;
+						@include default-transition;
+
 						&:hover {
+                            background-color: $vd-cell-hover-bg;
 							border: 1px darken($vd-border-color, 25%) solid;
 							z-index: 99999;
 						}
@@ -173,10 +243,10 @@
 
                 text-align: center;
 
-                    &:hover {
-                        background-color: darken($vd-border-color, 50%);
-                        color: $oaWebWhite;
-                    }
+                &:hover {
+                    background-color: darken($vd-border-color, 50%);
+                    color: $oaWebWhite;
+                }
 
                 > i {
                     display: inline-block;
