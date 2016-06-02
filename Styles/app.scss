@@ -1,4 +1,7 @@
-﻿matrix {
+﻿@import "../../../Sass/variables";
+@import "../../../Sass/mixins";
+
+matrix {
     display: block;
     height: 100%;
     width: 100%;
@@ -14,14 +17,35 @@
     $vd-cell-hover-bg: #d7eaf8;
     $vd-selected-cell-bg: #afd5f0;
 
+    $vd-shadow-size: 31px;
+
+    $vd-white: #FFFFFF;
+    $vd-axis-hover-bg: darken($vd-white, 3);
+
+    $vd-image-path: '/App/Other/Images';
+
     .vd-columns-axis-description {
         position: absolute;
         top: 0;
         left: $vd-default-cell-height;
         right: 0;
         height: $vd-default-cell-height;
+        line-height: 30px;
+        padding-left: 5px;
 
         border-bottom: 1px $vd-border-color solid;
+
+		> span {
+			font-size: $frame-font-size;
+		}
+
+		> div {
+			display: inline;
+			float: left;
+			margin-right: 10px;
+			opacity: .7;
+			color: lighten($primary-color, 20%);
+		}
     }
 
     .vd-rows-axis-description {
@@ -32,6 +56,36 @@
         width: $vd-default-cell-height;
 
         border-right: 1px $vd-border-color solid;
+
+		> span {
+			width: 200px;
+			line-height: 30px;
+			display: inline-block;
+			white-space: nowrap;
+			color: black;
+			margin: 145px auto auto -85px;
+			text-align: right;
+
+			font-size: $frame-font-size;
+
+			@include has-ellipsis;
+			@include vendorize(transform,rotate(-90deg));
+		}
+
+		> div {
+			position: absolute;
+
+			height: 30px;
+			line-height: 30px;
+
+			top: 20px;
+			opacity: .7;
+
+			margin: 0 0 0 -9px;
+
+			@include vendorize(transform,rotate(-90deg));
+			color: lighten($primary-color, 20%);
+		}
     }
 
     i {
@@ -60,7 +114,7 @@
 
                 &:hover {
                     background-color: darken($vd-border-color, 50%);
-                    color: $oaWebWhite;
+                    color: $vd-white;
                 }
 
             }
@@ -84,8 +138,74 @@
                     height: 100%;
                     overflow: hidden;
 
-                    > div {
+                    &.vd-vertical {
+                        > .vd-column-axis-item {
+                            > div {
+								-webkit-transform: rotate(-90deg);
+								transform: rotate(-90deg);
+								-ms-transform: rotate(-90deg);
+								-webkit-transform-origin: right top;
+								-ms-transform-origin: right top;
+								transform-origin: right top;
+								right: 2.5em;
+								left: auto;
+                            }
+                        }
+                    }
+
+                    &.vd-no-icons:not(.vd-vertical) {
+                        > .vd-column-axis-item {
+                            > div {
+                                left: 0;
+                            }
+                        }
+                    }
+
+                    > .vd-column-axis-item {
                         position: absolute;
+                        top: 0;
+                        bottom: 0;
+
+                        border-right: 1px $vd-border-color solid;
+
+						&:hover, &.hover {
+							background: $vd-axis-hover-bg;
+						}
+
+						> .item-icon {
+							display: inline-block;
+							height: 20px;
+							width: 20px;
+							position: absolute;
+							bottom: 5px;
+							left: 5px;
+							padding: 2px;
+						}
+
+						> .reuse, > .variant {
+							@include reuseIcon(8px, 5px, 9px);
+						}
+
+						> div {
+							display: inline-block;
+							padding: 5px .5em;
+							position: absolute;
+							top: 0;
+							left: 2.5em;
+							width: 175px;
+
+							@include has-ellipsis;
+
+							> span{ 
+								cursor: pointer;
+
+								&:hover-disable {
+									text-decoration: underline;
+								}
+							}
+
+						}
+
                     }
                 }
 			}
@@ -110,11 +230,124 @@
 
                     overflow: hidden;
 
-                    > div {
+                    &.vd-vertical {
+                        > .vd-row-axis-item {
+                            > div {
+								-webkit-transform: rotate(-90deg);
+								transform: rotate(-90deg);
+								-ms-transform: rotate(-90deg);
+								-webkit-transform-origin: right top;
+								-ms-transform-origin: right top;
+								transform-origin: right top;
+								width: 170px;
+								position: absolute;
+								right: 33px;
+								top: 0px;
+                            }
+                        }
+                    }
+
+                    &.vd-no-icons {
+                        &:not(.vd-vertical) {
+                            > .vd-row-axis-item {
+                                > div {
+                                    margin-left: 0;
+                                }
+                            }
+                        }
+
+                        &.vd-vertical {
+                            > .vd-row-axis-item {
+                                > div {
+                                    margin-left: 0;
+                                    padding-left: 5px;
+                                }
+                            }
+                        }
+                    }
+
+                    > .vd-row-axis-item { // Row axis item
                         position: absolute;
+                        left: 0;
+                        right: 0;
+                        padding-left: 5px;
+
+                        border-bottom: 1px $vd-border-color solid;
+
+						&:hover, &.hover {
+							background: $vd-axis-hover-bg;
+						}
+
+						> .item-icon {
+							position: absolute;
+							width: 20px;
+							height: 20px;
+							bottom: 5px;
+							left: 5px;
+							padding: 2px;
+						}
+
+						> .reuse, > .variant {
+							@include reuseIcon(8px, 5px, 9px);
+						}
+
+						> div {
+							margin-left: 25px;
+							line-height: 30px;
+							padding-right: 5px;
+
+							@include has-ellipsis;
+
+							> span{ 
+								cursor: pointer;
+
+								&:hover-disable {
+									text-decoration: underline;
+								}
+							}
+						}
                     }
                 }
 			}
+
+            &.vd-columns-axis-shadow {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: $vd-shadow-size;
+
+                opacity: 0;
+
+				pointer-events: none;
+				z-index: 999;
+				background-color: transparent;
+				background-repeat: no-repeat;
+				background-position: bottom center;
+				background-size: 100% $vd-shadow-size;
+				background-image: url($vd-image-path + '/shadow-h.png');
+
+            }
+
+            &.vd-rows-axis-shadow {
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: $vd-shadow-size;
+
+                background-color: $vd-white;
+
+                opacity: 0;
+
+				pointer-events: none;
+				z-index: 999;
+				background-color: transparent;
+				background-repeat: no-repeat;
+				background-position: left center;
+				background-size: contain;
+				background-image: url($vd-image-path + '/shadow-v.png');
+            }
 
 			&.vd-table {
 				top: 0;
@@ -132,6 +365,12 @@
 				* {
 				    box-sizing: border-box;
 				}
+
+                .vd-loading {
+                    span {
+                        display: none;
+                    }
+                }
 
 				.vd-row {
  					position: absolute;
@@ -167,14 +406,17 @@
                         }
 
 						.vd-relationship:not(.vd-loading) {
-							position: relative;
+							//position: relative;
+                            border-right: 0px;
 
-							&.vd-single {
+							&.vd-count-1 {
 								background-color: $primary-color;
 
 								> span {
 									@include icon-font();
-									@extend .ic-check;
+                                    &:before {
+                                        content: "\f122";
+                                    }
 								}
 							}
 
@@ -190,14 +432,14 @@
 								font-weight: 100;
 
 								text-align: center;
-								color: $oaWebWhite;
+								color: $vd-white;
 								font-size: $base-icon-size;
 								line-height: 1;
 							}
 
 
 							@for $i from 2 through 15 {
-								&.vd-multiple-#{$i} {
+								&.vd-count-#{$i} {
 									background-color: darken($primary-color, $i*3);
 								}
 							}
@@ -238,14 +480,14 @@
                 width: $vd-loader-size;
                 line-height: $vd-loader-size;
 
-                background-color: $vd-border-color;
-                color: darken($vd-border-color, 50%);
+                background-color: $primary-color;
+                color: $vd-white;
 
                 text-align: center;
 
                 &:hover {
-                    background-color: darken($vd-border-color, 50%);
-                    color: $oaWebWhite;
+                    background-color: $primary-dark-color;
+                    color: $vd-white;
                 }
 
                 > i {
