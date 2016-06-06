@@ -199,7 +199,7 @@
 
 		this.LOADING = true;
 	};
-	table.prototype.repaint = function (config) {
+	table.prototype.repaint = function (isForcedRepaint) {
 	    /*
             Repainting whole table to use all the latest data provided
         */
@@ -240,7 +240,7 @@
 		if (visibleColumnsCount > $matrix.X_AXIS.DATA.length) visibleColumnsCount = $matrix.X_AXIS.DATA.length;
 
         // We update dom only if we can show more or less rows / columns than we currently are showing
-		if (this.ROWS.length != visibleRowsCount || this.COLUMNS.length !== visibleColumnsCount) {
+		if (this.ROWS.length != visibleRowsCount || this.COLUMNS.length !== visibleColumnsCount || isForcedRepaint) {
 		    // Triggering loading
 		    this.LOADING = true;
 		    $('.vd-matrix-id-' + this.MATRIX_ID + ' .vd-progress-loader').show();
@@ -615,6 +615,7 @@
 				    if (badRows.length > 0) {
 				        for (var i = 0; i < badRows.length; i++) {
 				            badRows[i].TOP = currentTopPositionList[i];
+				            badRows[i].DISTANCE = currentTopPositionList[i] + _self.CELL_HEIGHT;
 				            badRows[i].repaint();
 				        }
 
@@ -646,6 +647,7 @@
 				    if (badColumns.length > 0) {
 				        for (var i = 0; i < badColumns.length; i++) {
 				            badColumns[i].LEFT = currentLeftPositionList[i];
+				            badColumns[i].DISTANCE = currentLeftPositionList[i] + _self.CELL_WIDTH;
 				            badColumns[i].repaint();
 				        }
 
@@ -833,17 +835,25 @@
 	                    }
 
 	                    for (var a = 0, c = affectedCells.length; a < c; a++) {
-	                        var cloneRelationshipRenderExists = affectedCells[a].hasClass('vd-relationship');
+	                        var cloneRelationshipRenderExists = affectedCells[a].hasClass('vd-relationship'),
+                                relationshipStringPair = $relationship.rowObjectId + '_' + $relationship.columnObjectId;
 	                        if (cloneRelationshipRenderExists) {
-	                            var previousCount = affectedCells[a].children('span').text();
-	                            previousCount = previousCount === '' ? 1 : parseInt(previousCount);
+	                            // Making sure that data-relationship attribute is different then expected
+	                            var relationshipStringClonePair = affectedCells[a].attr('data-relationship');
 
-	                            affectedCells[a].removeClass('vd-count-' + previousCount);
+	                            if (relationshipStringPair !== relationshipStringClonePair) {
+
+
+	                                var previousCount = affectedCells[a].children('span').text();
+	                                previousCount = previousCount === '' ? 1 : parseInt(previousCount);
+
+	                                affectedCells[a].removeClass('vd-count-' + previousCount);
+	                            }
 	                        }
 	                        var relationshipCount = $relationship.relationships.length + (cloneRelationshipRenderExists && previousCount != null ? previousCount : 0),
                                 relationshipClassCount = relationshipCount < 16 ? relationshipCount : 'lots';
 
-	                        affectedCells[a].attr('data-relationship', $relationship.rowObjectId + '_' + $relationship.columnObjectId)
+	                        affectedCells[a].attr('data-relationship', relationshipStringPair)
                             .addClass('vd-relationship vd-count-' + relationshipClassCount)
                             .html('<span>' + (matrixObj.TABLE.SHOW_RELATIONSHIP_COUNT && relationshipCount > 1 ? relationshipCount : '') + '</span>');
 	                    }
@@ -1143,7 +1153,7 @@
 	            case 'updateAxis':
 	                var axis = (config.options.type === 'rows' ? 'Y' : 'X') + '_AXIS';
 	                matrixObj[axis].bootstrap(config.options.options);
-	                matrixObj.TABLE.repaint();
+	                matrixObj.TABLE.repaint(true);
 	            break;
 
 	            case 'clearSelection':
@@ -1171,7 +1181,7 @@
 
 	                    context.item =  {
 	                        isRelated: hasRelationships,
-	                        isSelected: matrixObj.SELECTED_ITEMS[matrixObj.TABLE.ROWS[rowId].OBJECT_ID + '_' + matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID] || matrixObj.SELECTED_ITEMS[matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID + '_' + matrixObj.TABLE.ROWS[rowId].OBJECT_ID],
+	                        isSelected: matrixObj.SELECTED_ITEMS[matrixObj.SELECTED_ITEMS[matrixObj.TABLE.ROWS[rowId].OBJECT_ID + '_' + matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID]] != null || matrixObj.SELECTED_ITEMS[matrixObj.SELECTED_ITEMS[matrixObj.TABLE.COLUMNS[cellId].OBJECT_ID + '_' + matrixObj.TABLE.ROWS[rowId].OBJECT_ID]] != null,
 	                        columnItemId: column.OBJECT_ID,
                             columnObjectTypeId: column.OBJECT_TYPE_ID,
 	                        columnItemName: matrixObj.X_AXIS.DATA[(column.LEFT / matrixObj.TABLE.CELL_WIDTH)].display,
@@ -1179,7 +1189,8 @@
                             rowObjectTypeId: row.OBJECT_TYPE_ID,
 	                        rowItemName: matrixObj.Y_AXIS.DATA[(row.TOP / matrixObj.TABLE.CELL_HEIGHT)].display,
 	                        pairStringOne: row.OBJECT_ID + '_' + column.OBJECT_ID,
-	                        pairStringTwo: column.OBJECT_ID + '_' + row.OBJECT_ID
+	                        pairStringTwo: column.OBJECT_ID + '_' + row.OBJECT_ID,
+	                        modelId: matrixObj.X_AXIS.DATA[(column.LEFT / matrixObj.TABLE.CELL_WIDTH)].modelId
 	                    }
 	                }
                 
@@ -1206,13 +1217,13 @@
 	            case 'updateCellSettings':
 	                matrixObj.TABLE.SHOW_RELATIONSHIP_COUNT = config.options.showRelationshipCount;
 	                $('.vd-matrix-id-' + MATRIX_ID + ' .vd-row').addClass('vd-loading');
-	                matrixObj.TABLE.repaint();
+	                matrixObj.TABLE.repaint(true);
 	            break;
 
 	            case 'rebindAxis':
 	                matrixObj.X_AXIS.DATA = config.options.columns.items;
 	                matrixObj.Y_AXIS.DATA = config.options.rows.items;
-	                matrixObj.TABLE.repaint();
+	                matrixObj.TABLE.repaint(true);
 	            break;
 	        }
         }
