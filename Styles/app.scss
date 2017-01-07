@@ -362,6 +362,7 @@ matrix {
                     overflow: hidden;
                 }
 
+<<<<<<< cb6bf32ef5f761f30e3338eb3580855c191a2198
 				* {
 				    box-sizing: border-box;
 				}
@@ -373,6 +374,9 @@ matrix {
                 }
 
 				.vd-row {
+=======
+				.row {
+>>>>>>> Changes made
  					position: absolute;
  					left: 0;
  					right: 0;
@@ -397,6 +401,7 @@ matrix {
 								background-color: rgba($highlight-color, .6);
 							}
 
+<<<<<<< cb6bf32ef5f761f30e3338eb3580855c191a2198
 							// Mixed selected cells
 							&.vd-relationship {
 								> span {
@@ -450,6 +455,11 @@ matrix {
 						}
 
                     }
+=======
+					&.loading {
+
+					}
+>>>>>>> Changes made
 
 					.vd-column {
 						position: absolute;
@@ -461,10 +471,22 @@ matrix {
 						@include default-transition;
 
 						&:hover {
+<<<<<<< cb6bf32ef5f761f30e3338eb3580855c191a2198
                             background-color: $vd-cell-hover-bg;
 							border: 1px darken($vd-border-color, 25%) solid;
 							z-index: 99999;
 						}
+=======
+							box-sizing: border-box;
+							border: 1px blue solid;
+							z-index: 99999;
+						}
+
+						&.loading {
+
+						}
+
+>>>>>>> Changes made
 					}
 				}
 			}

@@ -46,6 +46,7 @@
         '</div>' +
 	'</div>';
 
+<<<<<<< cb6bf32ef5f761f30e3338eb3580855c191a2198
     /*
         Utility functions
     */
@@ -54,6 +55,8 @@
 	    return classes.split('id-')[1].split(' ')[0];
 	};
 
+=======
+>>>>>>> Changes made
 	/*
 		Row items
 	*/
@@ -548,6 +551,7 @@
 		// Create scroll event
 		var scrollCallbackTimer,
 			_self = this;
+<<<<<<< cb6bf32ef5f761f30e3338eb3580855c191a2198
 		$(activeMatrixes[this.MATRIX_ID].selectors.table).scroll(function(e) {
 		    clearTimeout(scrollCallbackTimer);
 
@@ -561,6 +565,17 @@
 
 		    scrollCallbackTimer = setTimeout(function () {
 		        var $wp = { // ViewPort
+=======
+		$(activeMatrixes[this.MATRIX_ID].selectors.table).on('scroll', function(e) {
+			clearTimeout(scrollCallbackTimer);
+			_self.scroll(e);
+
+			scrollCallbackTimer = setTimeout(function() {
+				/*
+					Making sure
+				*/
+				var $wp = { // ViewPort
+>>>>>>> Changes made
 					topMin: $(activeMatrixes[_self.MATRIX_ID].selectors.table).scrollTop(),
 					topMax: $(activeMatrixes[_self.MATRIX_ID].selectors.table).scrollTop() + _self.HEIGHT,
 					leftMin: $(activeMatrixes[_self.MATRIX_ID].selectors.table).scrollLeft(),
@@ -888,6 +903,7 @@
 
 	    // Making sure we have all params (default param extend)
 		var defaults = {
+<<<<<<< cb6bf32ef5f761f30e3338eb3580855c191a2198
 		    columns: {
 		        options: {
 		            width: 150,
@@ -909,6 +925,18 @@
 		    options: {
 		        showRelationshipCount: false
 		    },
+=======
+			row: {
+				height: 30,
+				width: 150,
+				position: horizontal
+			},
+			column: {
+				width: 150,
+				height: 30,
+				position: vertical
+			},
+>>>>>>> Changes made
 			id: this.MATRIX_ID
 		};
 		if (!config) {
@@ -924,6 +952,7 @@
 		activeMatrixes[this.MATRIX_ID] = {
 			matrix: this,
 			selectors: {
+<<<<<<< cb6bf32ef5f761f30e3338eb3580855c191a2198
 				canvas: '.vd-matrix-id-' + this.MATRIX_ID,
 				table: '.vd-matrix-id-' + this.MATRIX_ID + ' > div > .vd-table',
 				tableInner: '.vd-matrix-id-' + this.MATRIX_ID + ' > div > .vd-table > div',
@@ -931,6 +960,13 @@
 				columnsAxis: '.vd-matrix-id-' + this.MATRIX_ID + ' > div > .vd-columns-axis > div',
 				rowsShadow: '.vd-matrix-id-' + this.MATRIX_ID + ' > div > .vd-rows-axis-shadow',
 				columnsShadow: '.vd-matrix-id-' + this.MATRIX_ID + ' > div > .vd-columns-axis-shadow'
+=======
+				canvas: '.matrix-id-' + this.MATRIX_ID,
+				table: '.matrix-id-' + this.MATRIX_ID + ' > div > .table',
+				tableInner: '.matrix-id-' + this.MATRIX_ID + ' > div > .table > div',
+				columns: '.matrix-id-' + this.MATRIX_ID + ' > div > .columns-axis',
+				rows: '.matrix-id-' + this.MATRIX_ID + ' > div > .rows-axis',
+>>>>>>> Changes made
 			}
 		};
 		element.html(TPL.CANVAS);
@@ -1097,6 +1133,7 @@
 	                    delete matrixObj.SELECTED_ITEMS[selectionStringOne];
 	                    // Just to be sure we always clear the 
 
+<<<<<<< cb6bf32ef5f761f30e3338eb3580855c191a2198
 	                    if (selectionStringOne !== selectionStringTwo) {
 	                        delete matrixObj.SELECTED_ITEMS[selectionStringTwo];
 	                    }
@@ -1232,3 +1269,17 @@
     };
 
 })(jQuery);
+=======
+$('#matrix-container').matrix({
+	row: {
+		height: 30,
+		width: 150,
+		position: horizontal
+	},
+	column: {
+		width: 150,
+		height: 30,
+		position: vertical
+	}
+});
+>>>>>>> Changes made
